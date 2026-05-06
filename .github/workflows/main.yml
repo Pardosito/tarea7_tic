@@ -1,6 +1,6 @@
-name: Postgres GitHub Action
+name: PostgreSQL Videogames Demo
 
-on: [push]
+on: [push, workflow_dispatch]
 
 jobs:
   postgres-demo:
@@ -10,9 +10,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: admin
+          POSTGRES_USER: gameuser
           POSTGRES_DB: videogames
+          POSTGRES_HOST_AUTH_METHOD: trust
         ports:
           - 5432:5432
         options: >-
@@ -23,8 +23,6 @@ jobs:
 
     steps:
       - name: Run SQL
-        env:
-          PGPASSWORD: gamepass
         run: |
           psql -h localhost -U gameuser -d videogames <<'SQL'
             CREATE TABLE games (id SERIAL PRIMARY KEY, title TEXT, genre TEXT);
