@@ -1,0 +1,43 @@
+name: Postgres GitHub Action
+
+on: [push]
+
+jobs:
+  postgres-demo:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin
+          POSTGRES_DB: videogames
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Run SQL
+        env:
+          PGPASSWORD: gamepass
+        run: |
+          psql -h localhost -U gameuser -d videogames <<'SQL'
+            CREATE TABLE games (id SERIAL PRIMARY KEY, title TEXT, genre TEXT);
+            CREATE TABLE reviews (id SERIAL PRIMARY KEY, game_id INT REFERENCES games(id), score INT);
+
+            INSERT INTO games (title, genre) VALUES
+              ('Elden Ring', 'RPG'),
+              ('Celeste', 'Platformer'),
+              ('Hades', 'Roguelike');
+
+            INSERT INTO reviews (game_id, score) VALUES (1, 95), (2, 92), (3, 96);
+
+            SELECT g.title, g.genre, r.score
+            FROM games g JOIN reviews r ON r.game_id = g.id
+            ORDER BY r.score DESC;
+          SQL
